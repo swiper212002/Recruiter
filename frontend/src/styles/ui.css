@@ -1,0 +1,35 @@
+/* Minimal UI kit for TestCreator, QuestionForm, QuestionList */
+:root{
+  --bg:#f7f9fc;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --accent:#2563eb;
+  --danger:#dc2626;
+  --warning:#b36b00;
+  --glass: rgba(255,255,255,0.6);
+}
+body{ background:var(--bg); font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+.container{ max-width:1100px; margin:28px auto; padding:20px; }
+.grid{ display:grid; grid-template-columns: 1fr 420px; gap:20px; align-items:start; }
+.card{ background:var(--card); border-radius:10px; padding:16px; box-shadow:0 2px 8px rgba(16,24,40,0.06); }
+h2{ margin:0 0 12px 0; font-size:18px; color:#111827 }
+.form-row{ display:flex; gap:8px; margin-bottom:10px; }
+input[type='text'], input[type='search'], select, textarea{ width:100%; padding:8px 10px; border:1px solid #e6e9ef; border-radius:8px; background:transparent; }
+button{ background:var(--accent); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; }
+button.secondary{ background:#eef2ff; color:var(--accent); }
+.questions-list{ display:flex; flex-direction:column; gap:8px; max-height:480px; overflow:auto; }
+.question-card{ display:flex; gap:8px; align-items:flex-start; padding:10px; border-radius:8px; border:1px solid #f1f5f9; }
+.question-text{ flex:1; color:#111827; font-size:14px; }
+.chip{ display:inline-block; padding:6px 8px; background:#f3f4f6; border-radius:999px; font-size:13px; color:var(--muted); margin-right:6px; }
+.selected-chip{ background:var(--accent); color:white; }
+.selected-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+.warnings{ background:#fff7ed; border-left:4px solid var(--warning); padding:8px; border-radius:6px; color: #7a4b00; }
+.error{ background:#fee2e2; border-left:4px solid var(--danger); padding:8px; border-radius:6px; color:#7f1d1d; }
+.small{ font-size:12px; color:var(--muted); }
+.meta{ display:flex; gap:8px; align-items:center; }
+.badge{ background:#eef2ff; color:var(--accent); padding:4px 8px; border-radius:999px; font-size:12px; }
+.option-row{ display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+.remove-btn{ background:#fee2e2; color:var(--danger); padding:6px 8px; border-radius:8px; border:none; cursor:pointer; }
+.controls{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+/* Responsive */
+@media (max-width:900px){ .grid{ grid-template-columns: 1fr; } }
