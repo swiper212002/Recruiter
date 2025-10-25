@@ -16,8 +16,12 @@ const TestCreator = () => {
     authFetch('http://localhost:5000/api/questions')
       .then(res => res && res.ok ? res.json() : null)
       .then(data => {
-        if (data && data.data && Array.isArray(data.data.questions)) setQuestions(data.data.questions);
-        else {
+        // backend may return either an array of questions or { data: { questions: [...] } }
+        if (Array.isArray(data)) {
+          setQuestions(data);
+        } else if (data && data.data && Array.isArray(data.data.questions)) {
+          setQuestions(data.data.questions);
+        } else {
           // fallback to public route
           fetch('http://localhost:5000/api/public/questions')
             .then(r => r.json())
@@ -91,7 +95,7 @@ const TestCreator = () => {
             <div className="form-row">
               <input type="text" placeholder="Test Name" value={testName} onChange={e => setTestName(e.target.value)} required />
               <input type="number" min={1} placeholder="Duration (minutes)" value={durationMinutes} onChange={e => setDurationMinutes(e.target.value)} style={{width:120, marginLeft:8}} required />
-              <button type="submit">Create</button>
+              <button type="submit">Create Test</button>
             </div>
 
             <div className="form-row">
@@ -110,7 +114,7 @@ const TestCreator = () => {
             {apiError && <div className="error">Error: {apiError}</div>}
             {apiWarnings && apiWarnings.length > 0 && (
               <div className="warnings">
-                <strong>Warnings</strong>
+                <strong>Warnings:</strong>
                 <ul>
                   {apiWarnings.map((w, idx) => (
                     <li key={idx}>{w.type}: {Array.isArray(w.question_ids) ? w.question_ids.join(', ') : JSON.stringify(w)}</li>
