@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import '../styles/dark-neon.css';
 
 const HRQuestions = () => {
   const [questions, setQuestions] = useState([]);
@@ -9,6 +10,7 @@ const HRQuestions = () => {
   const [difficulty, setDifficulty] = useState('EASY');
   const [options, setOptions] = useState([{ option_text: '', is_correct: false }, { option_text: '', is_correct: false }]);
   const [message, setMessage] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
 
   const fetchQuestions = async () => {
     setLoading(true);
@@ -210,7 +212,19 @@ const HRQuestions = () => {
   // Create handler must include options when applicable
   const handleCreateWithOptions = async () => {
     setMessage(null);
+    setValidationErrors({});
     try {
+      // client-side validation
+      const errors = {};
+      if (!text || !text.trim()) errors.text = 'Vui lòng nhập nội dung câu hỏi';
+      if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(type)) {
+        const filled = options.filter(o => o.option_text && o.option_text.trim());
+        if (filled.length < 2) errors.options = 'Cần ít nhất 2 lựa chọn';
+        const correctCount = filled.filter(o => o.is_correct).length;
+        if (correctCount === 0) errors.options = 'Cần chọn ít nhất 1 đáp án đúng';
+      }
+      if (Object.keys(errors).length) { setValidationErrors(errors); setMessage({ type: 'error', text: 'Vui lòng sửa lỗi trước khi tạo' }); return; }
+
       const payload = { question_text: text, question_type: type, difficulty_level: difficulty };
       if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(type)) {
         payload.options = options.filter(o => o.option_text.trim()).map(o => ({ option_text: o.option_text.trim(), is_correct: !!o.is_correct }));
@@ -239,120 +253,123 @@ const HRQuestions = () => {
   // ...existing code...
 
   return (
-    <div style={{ padding: 24, fontFamily: 'Segoe UI, Roboto, Arial' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>HR Question Manager — Tạo câu hỏi trắc nghiệm</h2>
-      </div>
-
-      {message && <div style={{ color: message.type === 'error' ? '#b00020' : '#166534', marginTop: 12 }}>{message.text}</div>}
-
-      <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16 }}>
-        <div style={{ padding: 12, borderRadius: 8, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
-          {/* ...existing header / controls... */}
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input placeholder="Nội dung câu hỏi" value={text} onChange={e => setText(e.target.value)} style={{ flex: 1, padding: '8px 10px' }} />
-            <select value={type} onChange={e => setType(e.target.value)} style={{ padding: 8 }}>
-              <option value="TEXT">TEXT</option>
-              <option value="SINGLE_CHOICE">SINGLE_CHOICE</option>
-              <option value="MULTIPLE_CHOICE">MULTIPLE_CHOICE</option>
-              <option value="CODING">CODING</option>
-            </select>
-            <select value={difficulty} onChange={e => setDifficulty(e.target.value)} style={{ padding: 8, marginLeft: 8 }}>
-              <option value="EASY">EASY</option>
-              <option value="MEDIUM">MEDIUM</option>
-              <option value="HARD">HARD</option>
-              <option value="EXPERT">EXPERT</option>
-            </select>
-            <button onClick={handleCreateWithOptions} style={{ padding: '8px 12px' }}>Tạo</button>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="left">
+          <div className="flex-between" style={{ marginBottom: 8 }}>
+            <h2>Employer Question Manager — Tạo câu hỏi</h2>
+            <div className="muted-small">Public quick-create (no admin UI)</div>
           </div>
 
-          {type === 'TEXT' && (
-            <div style={{ marginTop: 12 }}>
-              <label style={{ fontSize: 13, color: '#444' }}>Expected answer (nếu có)</label>
-              <input placeholder="Expected answer" value={expectedAnswer} onChange={e => setExpectedAnswer(e.target.value)} style={{ width: '100%', marginTop: 6, padding: 8 }} />
-            </div>
-          )}
-
-          {['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(type) && (
-            <div style={{ marginTop: 12 }}>
-              <label style={{ fontSize: 13, color: '#444' }}>Options</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-                {options.map((opt, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input value={opt.option_text} onChange={e => updateOptionText(idx, e.target.value)} placeholder={`Option ${idx + 1}`} style={{ flex: 1 }} />
-                    <label style={{ fontSize: 13 }}>
-                      <input type="checkbox" checked={opt.is_correct} onChange={() => toggleOptionCorrect(idx)} /> Correct
-                    </label>
-                    {options.length > 2 && <button onClick={() => removeOption(idx)}>Remove</button>}
-                  </div>
-                ))}
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button onClick={addOption}>Add option</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div style={{ marginTop: 12 }}>
-            <label style={{ fontSize: 13, color: '#444' }}>Bulk add (mỗi dòng 1 câu hỏi)</label>
-            <textarea value={bulkText} onChange={e => setBulkText(e.target.value)} rows={6} style={{ width: '100%', marginTop: 6, padding: 8 }} />
-            <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button onClick={parseBulkPreview} style={{ padding: '8px 12px' }}>Preview</button>
-              <button onClick={handleBulkAdd} disabled={bulkLoading} style={{ padding: '8px 12px' }}>{bulkLoading ? 'Adding...' : 'Bulk add'}</button>
+          <div className="question-card">
+            <div className="form-row">
+              <input className={`input ${validationErrors.text ? 'error' : ''}`} placeholder="Nội dung câu hỏi" value={text} onChange={e => setText(e.target.value)} aria-label="Nội dung câu hỏi" />
+              <select className="input select-medium" value={type} onChange={e => setType(e.target.value)} aria-label="Loại câu hỏi">
+                <option value="TEXT">TEXT</option>
+                <option value="SINGLE_CHOICE">SINGLE_CHOICE</option>
+                <option value="MULTIPLE_CHOICE">MULTIPLE_CHOICE</option>
+                <option value="CODING">CODING</option>
+              </select>
+              <select className="input select-small" value={difficulty} onChange={e => setDifficulty(e.target.value)} aria-label="Độ khó">
+                <option value="EASY">EASY</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HARD">HARD</option>
+                <option value="EXPERT">EXPERT</option>
+              </select>
+              <button type="button" className="btn primary" onClick={handleCreateWithOptions} aria-label="Tạo câu hỏi">Tạo</button>
             </div>
 
-            {parsedBulk && parsedBulk.length > 0 && (
-              <div style={{ marginTop: 12, borderTop: '1px dashed #ddd', paddingTop: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong>Preview ({parsedBulk.length})</strong>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={saveParsedLocally}>Save locally</button>
-                    <button onClick={loadParsedFromLocal}>Load saved</button>
-                    <button onClick={clearLocalSaved}>Clear saved</button>
-                    <button onClick={sendSelectedParsed} disabled={bulkLoading}>{bulkLoading ? 'Sending...' : 'Send selected'}</button>
-                  </div>
-                </div>
+            {validationErrors.text && <div className="error-msg">{validationErrors.text}</div>}
 
-                <ul style={{ listStyle: 'none', padding: 0, marginTop: 8 }}>
-                  {parsedBulk.map(p => (
-                    <li key={p.id} style={{ padding: 8, border: '1px solid #eee', marginBottom: 8, borderRadius: 6, display: 'flex', gap: 8 }}>
-                      <input type="checkbox" checked={selectedParsed.has(p.id)} onChange={() => toggleParsedSelected(p.id)} />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600 }}>{p.payload.question_text}</div>
-                        <div style={{ fontSize: 12, color: '#555' }}>{p.payload.question_type}{p.payload.options ? ` — ${p.payload.options.map(o => o.option_text).join(' | ')}` : ''}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+            {type === 'TEXT' && (
+              <div style={{ marginTop: 12 }}>
+                <label className="muted-small">Expected answer (nếu có)</label>
+                <input className="input" placeholder="Expected answer" value={expectedAnswer} onChange={e => setExpectedAnswer(e.target.value)} style={{ marginTop: 6 }} />
               </div>
             )}
+
+            {['SINGLE_CHOICE', 'MULTIPLE_CHOICE'].includes(type) && (
+              <div style={{ marginTop: 12 }}>
+                <label className="muted-small">Options</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+                  {options.map((opt, idx) => (
+                    <div key={idx} className="option-row">
+                      <input className="input" value={opt.option_text} onChange={e => updateOptionText(idx, e.target.value)} placeholder={`Option ${idx + 1}`} aria-label={`Option ${idx + 1}`} />
+                      <label className="muted-small" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <input type="checkbox" checked={opt.is_correct} onChange={() => toggleOptionCorrect(idx)} aria-label={`Correct option ${idx + 1}`} /> <span>Correct</span>
+                      </label>
+                      {options.length > 2 && <button type="button" className="btn ghost small" onClick={() => removeOption(idx)} aria-label={`Remove option ${idx + 1}`}>Remove</button>}
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button type="button" className="btn ghost" onClick={addOption} aria-label="Add option">Add option</button>
+                  </div>
+                </div>
+                {validationErrors.options && <div className="error-msg">{validationErrors.options}</div>}
+              </div>
+            )}
+
+            <div style={{ marginTop: 12 }}>
+              <label className="muted-small">Bulk add (mỗi dòng 1 câu hỏi)</label>
+              <textarea className="input" value={bulkText} onChange={e => setBulkText(e.target.value)} rows={6} style={{ marginTop: 6 }} />
+              <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" className="btn ghost" onClick={parseBulkPreview}>Preview</button>
+                <button type="button" className="btn primary" onClick={handleBulkAdd} disabled={bulkLoading} aria-busy={bulkLoading}>{bulkLoading ? 'Adding...' : 'Bulk add'}</button>
+              </div>
+
+              {parsedBulk && parsedBulk.length > 0 && (
+                <div style={{ marginTop: 12, paddingTop: 8 }}>
+                  <div className="flex-between">
+                    <strong>Preview ({parsedBulk.length})</strong>
+                    <div className="preview-controls">
+                      <button type="button" className="btn ghost" onClick={saveParsedLocally}>Save locally</button>
+                      <button type="button" className="btn ghost" onClick={loadParsedFromLocal}>Load saved</button>
+                      <button type="button" className="btn ghost" onClick={clearLocalSaved}>Clear saved</button>
+                      <button type="button" className="btn primary" onClick={sendSelectedParsed} disabled={bulkLoading} aria-busy={bulkLoading}>{bulkLoading ? 'Sending...' : 'Send selected'}</button>
+                    </div>
+                  </div>
+
+                  <ul className="preview-list">
+                    {parsedBulk.map(p => (
+                      <li key={p.id} className="preview-item">
+                        <input type="checkbox" checked={selectedParsed.has(p.id)} onChange={() => toggleParsedSelected(p.id)} aria-label={`Select preview ${p.id}`} />
+                        <div style={{ flex: 1 }}>
+                          <div className="raw">{p.payload.question_text}</div>
+                          <div className="muted-small">{p.payload.question_type}{p.payload.options ? ` — ${p.payload.options.map(o => o.option_text).join(' | ')}` : ''}</div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        <div style={{ padding: 12 }}>
-          <h3 style={{ marginTop: 0 }}>Danh sách câu hỏi</h3>
-          <div style={{ maxHeight: 520, overflow: 'auto', background: '#fff', padding: 12, borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
+        <div className="right">
+          <h3>Danh sách câu hỏi</h3>
+          <div className="question-list">
             {loading ? <div>Loading...</div> : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <ul>
                 {questions.map(q => (
-                  <li key={q.question_id} style={{ padding: 8, borderRadius: 6, border: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <li key={q.question_id} className="question-row">
                     <div style={{ flex: 1 }}>
                       {editingId === q.question_id ? (
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <input value={editingText} onChange={e => setEditingText(e.target.value)} style={{ flex: 1 }} />
-                          <button onClick={() => saveEdit(q.question_id)}>Lưu</button>
-                          <button onClick={cancelEdit}>Hủy</button>
+                        <div className="form-row">
+                          <input className="input" value={editingText} onChange={e => setEditingText(e.target.value)} style={{ flex: 1 }} />
+                          <button type="button" className="btn primary" onClick={() => saveEdit(q.question_id)}>Lưu</button>
+                          <button type="button" className="btn ghost" onClick={cancelEdit}>Hủy</button>
                         </div>
                       ) : (
                         <div>
-                          <div style={{ fontWeight: 600 }}>{q.question_text}</div>
-                          <div style={{ fontSize: 12, color: '#666' }}>{q.question_type}</div>
+                          <div style={{ fontWeight: 700 }}>{q.question_text}</div>
+                          <div className="meta">{q.question_type}</div>
                         </div>
                       )}
                     </div>
-                    <div style={{ marginLeft: 12 }}>
-                      <button onClick={() => startEdit(q)} style={{ marginRight: 6 }}>Sửa</button>
-                      <button onClick={() => handleDelete(q.question_id)}>Xóa</button>
+                    <div className="right-actions">
+                      <button type="button" className="btn ghost" onClick={() => startEdit(q)}>Sửa</button>
+                      <button type="button" className="btn danger" onClick={() => handleDelete(q.question_id)}>Xóa</button>
                     </div>
                   </li>
                 ))}
@@ -361,6 +378,13 @@ const HRQuestions = () => {
           </div>
         </div>
       </div>
+
+      {/* notification */}
+      {message && (
+        <div className={`alert-box ${message.type === 'error' ? 'alert-error' : 'alert-success'} show`} role="status" aria-live="polite">
+          {message.text}
+        </div>
+      )}
     </div>
   );
 };

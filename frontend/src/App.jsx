@@ -13,8 +13,15 @@ function App() {
   return (
     <Router>
       <div>
-        <nav style={{ padding: 8 }}>
-          <a href="/">Home</a> | <a href="/questions">Questions</a> | <a href="/tests">Tests</a> | <a href="/admin/questions">HR Admin</a> | <a href="/take-test">Take Test</a> | <a href="/quiz">Quiz</a>
+        <nav className="app-nav">
+          <ul className="nav-list">
+            <li className="nav-item"><a className="nav-link" href="/"><span className="btn ghost">Home</span></a></li>
+            <li className="nav-item"><a className="nav-link" href="/questions"><span className="btn ghost">Questions</span></a></li>
+            <li className="nav-item"><a className="nav-link" href="/tests"><span className="btn primary">Tests</span></a></li>
+            <li className="nav-item"><a className="nav-link" href="/admin/questions"><span className="btn ghost">HR Admin</span></a></li>
+            <li className="nav-item"><a className="nav-link" href="/take-test"><span className="btn ghost">Take Test</span></a></li>
+            <li className="nav-item"><a className="nav-link" href="/quiz"><span className="btn ghost">Quiz</span></a></li>
+          </ul>
         </nav>
         <Switch>
           <Route path="/" exact component={Home} />

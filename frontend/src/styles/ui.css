@@ -19,7 +19,7 @@ button{ background:var(--accent); color:white; border:none; padding:8px 12px; bo
 button.secondary{ background:#eef2ff; color:var(--accent); }
 .questions-list{ display:flex; flex-direction:column; gap:8px; max-height:480px; overflow:auto; }
 .question-card{ display:flex; gap:8px; align-items:flex-start; padding:10px; border-radius:8px; border:1px solid #f1f5f9; }
-.question-text{ flex:1; color:#111827; font-size:14px; }
+.question-text{ flex:1; color:#ffffff; font-size:14px; }
 .chip{ display:inline-block; padding:6px 8px; background:#f3f4f6; border-radius:999px; font-size:13px; color:var(--muted); margin-right:6px; }
 .selected-chip{ background:var(--accent); color:white; }
 .selected-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
